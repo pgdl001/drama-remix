@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.dramaremix" "\0"
-            VALUE "FileDescription", "drama_remix_app" "\0"
+            VALUE "CompanyName", "Drama Remix Tool" "\0"
+            VALUE "FileDescription", "Drama Remix Tool - Desktop App" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "drama_remix_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.dramaremix. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Drama Remix Tool. All rights reserved." "\0"
             VALUE "OriginalFilename", "drama_remix_app.exe" "\0"
-            VALUE "ProductName", "drama_remix_app" "\0"
+            VALUE "ProductName", "Drama Remix Tool" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

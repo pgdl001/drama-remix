@@ -47,7 +47,7 @@ async def debug_exception_handler(request: Request, exc: Exception):
 # CORS - allow frontend dev server
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:*", "http://127.0.0.1:*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -84,3 +84,41 @@ async def health_check():
         "version": settings.APP_VERSION,
         "edge_tts": f"voice={settings.TTS_VOICE}",
     }
+
+
+@app.get("/api/gpu-info")
+async def gpu_info():
+    import subprocess
+    gpu_info = {
+        'has_nvidia_gpu': False,
+        'gpu_name': None,
+        'driver_installed': False,
+        'driver_url': 'https://www.nvidia.com/Download/index.aspx'
+    }
+    try:
+        result = subprocess.run(
+            ['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'],
+            capture_output=True, text=True, timeout=5
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            gpu_info['has_nvidia_gpu'] = True
+            gpu_info['gpu_name'] = result.stdout.strip().split('\n')[0]
+            gpu_info['driver_installed'] = True
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    if not gpu_info['has_nvidia_gpu']:
+        try:
+            result = subprocess.run(
+                ['wmic', 'path', 'win32_VideoController', 'get', 'name'],
+                capture_output=True, text=True, timeout=5
+            )
+            if result.returncode == 0:
+                for line in result.stdout.strip().split('\n'):
+                    line = line.strip()
+                    if line and 'NVIDIA' in line.upper():
+                        gpu_info['has_nvidia_gpu'] = True
+                        gpu_info['gpu_name'] = line
+                        break
+        except Exception:
+            pass
+    return gpu_info
