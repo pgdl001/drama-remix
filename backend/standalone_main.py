@@ -1,4 +1,4 @@
-"""PyInstaller 单入口：启动 Drama Remix 后端服务。"""
+"""PyInstaller single-entry: start the Drama Remix backend service."""
 import sys
 import os
 import json
@@ -7,7 +7,9 @@ import subprocess
 import tempfile
 import time
 import urllib.request
+import asyncio
 from pathlib import Path
+from uvicorn import Config, Server
 
 def get_resource_dir():
     if getattr(sys, '_MEIPASS', False):
@@ -18,6 +20,10 @@ RESOURCE_DIR = get_resource_dir()
 APP_DIR = RESOURCE_DIR / 'app'
 STORAGE_DIR = Path(tempfile.gettempdir()) / 'drama_remix_storage'
 STORAGE_DIR.mkdir(exist_ok=True)
+
+os.environ['STORAGE_ROOT'] = str(STORAGE_DIR)
+os.environ['DATABASE_URL'] = f'sqlite+aiosqlite:///{STORAGE_DIR / "drama_remix.db"}'
+sys.path.insert(0, str(RESOURCE_DIR))
 
 def find_free_port():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -62,17 +68,17 @@ def main():
     host = '127.0.0.1'
 
     gpu_info = detect_gpu()
-    print(f"=== GPU Detection ===")
+    print("=== GPU Detection ===")
     if gpu_info['has_nvidia_gpu']:
         print(f"  NVIDIA GPU: {gpu_info['gpu_name']}")
         if gpu_info['driver_installed']:
-            print(f"  Driver: Installed")
+            print("  Driver: Installed")
         else:
-            print(f"  Driver: NOT INSTALLED")
+            print("  Driver: NOT INSTALLED")
             print(f"  Download: {gpu_info['driver_url']}")
     else:
-        print(f"  No NVIDIA GPU detected (CPU mode)")
-    print(f"====================")
+        print("  No NVIDIA GPU detected (CPU mode)")
+    print("====================")
 
     info_file = STORAGE_DIR / 'backend_info.json'
     info = {'host': host, 'port': port, 'storage_dir': str(STORAGE_DIR)}
@@ -83,53 +89,26 @@ def main():
     print(f"=== Drama Remix Backend ===")
     print(f"Port: {port}")
     print(f"Storage: {STORAGE_DIR}")
-    print(f"================================")
+    print("================================")
 
-    python_exe = sys.executable
-    env = os.environ.copy()
-    env['STORAGE_ROOT'] = str(STORAGE_DIR)
-    env['DATABASE_URL'] = f'sqlite+aiosqlite:///{STORAGE_DIR / "drama_remix.db"}'
-    env['PYTHONPATH'] = str(RESOURCE_DIR)
+    sys.path.insert(0, str(APP_DIR))
+    from main import app
 
-    cmd = [python_exe, '-m', 'uvicorn', 'app.main:app',
-           '--host', host, '--port', str(port)]
+    config = Config(
+        app=app,
+        host=host,
+        port=port,
+        log_level="info",
+    )
+    server = Server(config)
 
-    proc = None
+    print(f"Starting server at http://{host}:{port}")
+
     try:
-        proc = subprocess.Popen(
-            cmd,
-            cwd=str(APP_DIR),
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-        )
-        print(f"Backend PID: {proc.pid}")
-        print(f"Waiting for server to start...")
-
-        for _ in range(60):
-            if proc.poll() is not None:
-                print(f"Backend process exited with code: {proc.poll()}")
-                break
-            try:
-                urllib.request.urlopen(f'http://{host}:{port}/api/health', timeout=2)
-                print(f"Backend ready at http://{host}:{port}")
-                break
-            except Exception:
-                time.sleep(1)
-        else:
-            print("WARNING: Backend may not have started properly")
-
-        for line in proc.stdout:
-            print(line, end='')
-
+        asyncio.run(server.serve())
     except KeyboardInterrupt:
         print("Shutting down...")
     finally:
-        if proc is not None and proc.poll() is None:
-            proc.terminate()
-            proc.wait()
         try:
             if info_file.exists():
                 info_file.unlink()
