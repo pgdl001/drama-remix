@@ -18,17 +18,12 @@ jobs:
           git clone --depth 1 --branch stable https://github.com/flutter/flutter.git -q
           & "${{ github.workspace }}/flutter/bin/flutter" precache --windows
 
-      - name: Enable Windows desktop
-        run: "& \"${{ github.workspace }}/flutter/bin/flutter\" config --enable-windows-desktop"
-        working-directory: drama_remix_app
-
-      - name: Get Flutter dependencies
-        run: "& \"${{ github.workspace }}/flutter/bin/flutter\" pub get"
-        working-directory: drama_remix_app
-
       - name: Build Flutter Windows
-        run: "& \"${{ github.workspace }}/flutter/bin/flutter\" build windows --release"
-        working-directory: drama_remix_app
+        run: |
+          Set-Location drama_remix_app
+          & "${{ github.workspace }}/flutter/bin/flutter" config --enable-windows-desktop
+          & "${{ github.workspace }}/flutter/bin/flutter" pub get
+          & "${{ github.workspace }}/flutter/bin/flutter" build windows --release
 
       - name: Upload Flutter Windows artifact
         uses: actions/upload-artifact@v4
