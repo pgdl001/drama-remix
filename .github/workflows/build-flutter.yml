@@ -29,5 +29,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: flutter-windows-exe
-          path: drama_remix_app/build/windows/runner/Release/
+          path: build/windows/x64/runner/Release/
           retention-days: 5
