@@ -20,10 +20,10 @@ jobs:
 
       - name: Build Flutter Windows
         run: |
-          Set-Location drama_remix_app
-          & "${{ github.workspace }}/flutter/bin/flutter" config --enable-windows-desktop
-          & "${{ github.workspace }}/flutter/bin/flutter" pub get
-          & "${{ github.workspace }}/flutter/bin/flutter" build windows --release
+          cd drama_remix_app
+          ..\flutter\bin\flutter config --enable-windows-desktop
+          ..\flutter\bin\flutter pub get
+          ..\flutter\bin\flutter build windows --release
 
       - name: Upload Flutter Windows artifact
         uses: actions/upload-artifact@v4
