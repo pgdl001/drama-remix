@@ -28,3 +28,4 @@ backend/dist/
 backend/build/
 backend/standalone_main.spec
 indextts_models/
+release/
