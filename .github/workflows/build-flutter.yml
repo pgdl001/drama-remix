@@ -1,0 +1,40 @@
+name: Build Flutter Windows
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build-flutter:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Clone Flutter SDK
+        run: |
+          git clone --depth 1 --branch stable https://github.com/flutter/flutter.git -q
+          ./flutter/bin/flutter --version
+
+      - name: Add Flutter to PATH
+        run: echo "${{ github.workspace }}/flutter/bin" >> $GITHUB_PATH
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+        working-directory: drama_remix_app
+
+      - name: Build Flutter Windows
+        run: flutter build windows --release -v
+        working-directory: drama_remix_app
+
+      - name: Upload Flutter Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-windows-exe
+          path: drama_remix_app/build/windows/runner/Release/
+          retention-days: 5
