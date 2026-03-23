@@ -121,13 +121,12 @@ class BackendService {
           print('Failed to parse backend info: $e');
         }
       }
-      if (_backendProcess!.pid != null) {
-        final exitCode = await _backendProcess!.exitCode.timeout(
-          Duration.zero,
-          onTimeout: () => null,
-        );
-        if (exitCode != null) {
+      if (_backendProcess != null && _backendProcess!.pid > 0) {
+        try {
+          final exitCode = await _backendProcess!.exitCode.timeout(Duration.zero);
           throw Exception('Backend process exited with code: $exitCode');
+        } catch (e) {
+          if (e is! TimeoutException) rethrow;
         }
       }
     }
