@@ -16,20 +16,23 @@ jobs:
       - name: Clone Flutter SDK
         run: |
           git clone --depth 1 --branch stable https://github.com/flutter/flutter.git -q
-          ./flutter/bin/flutter --version
-
-      - name: Add Flutter to PATH
-        run: echo "${{ github.workspace }}/flutter/bin" >> $GITHUB_PATH
+          & "${{ github.workspace }}/flutter/bin/flutter" precache --windows
 
       - name: Enable Windows desktop
-        run: flutter config --enable-windows-desktop
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}/flutter/bin/flutter" config --enable-windows-desktop
 
       - name: Get Flutter dependencies
-        run: flutter pub get
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}/flutter/bin/flutter" pub get
         working-directory: drama_remix_app
 
       - name: Build Flutter Windows
-        run: flutter build windows --release -v
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}/flutter/bin/flutter" build windows --release
         working-directory: drama_remix_app
 
       - name: Upload Flutter Windows artifact

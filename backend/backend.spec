@@ -1,15 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
 from pathlib import Path
 
 block_cipher = None
-APP_DIR = Path(__file__).parent / 'app'
+SPEC_DIR = os.path.dirname(os.path.abspath(SPEC))
+APP_DIR = os.path.join(SPEC_DIR, 'app')
 
 a = Analysis(
-    [str(APP_DIR / 'standalone_main.py')],
-    pathex=[str(APP_DIR)],
+    [os.path.join(SPEC_DIR, 'standalone_main.py')],
+    pathex=[SPEC_DIR],
     binaries=[],
-    datas=[(str(APP_DIR), 'app')],
+    datas=[(APP_DIR, 'app')],
     hiddenimports=[
         'uvicorn', 'uvicorn.logging', 'uvicorn.loops', 'uvicorn.loops.auto',
         'uvicorn.protocols', 'uvicorn.protocols.http', 'uvicorn.protocols.http.auto',
@@ -45,4 +47,3 @@ coll = COLLECT(
     exe, a.binaries, a.zipfiles, a.datas,
     strip=False, upx=True, name='backend',
 )
-

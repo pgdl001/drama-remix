@@ -19,30 +19,29 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
+        shell: pwsh
         run: |
           pip install pyinstaller edge-tts
-          pip install -r backend/pyproject.toml
+          pip install -e backend/
 
       - name: Download FFmpeg
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip" -OutFile "ffmpeg.zip"
-          Expand-Archive -Path "ffmpeg.zip" -DestinationPath "ffmpeg"
-          Get-ChildItem -Path "ffmpeg" -Recurse -Filter "ffmpeg.exe" | Select-Object -First 1 -ExpandProperty FullName
+          Expand-Archive -Path "ffmpeg.zip" -DestinationPath "ffmpeg" -Force
 
       - name: Build backend with PyInstaller
-        run: |
-          cd backend
-          pyinstaller --noconfirm --name backend --add-data "app;app" --hidden-import=fastapi --hidden-import=uvicorn --hidden-import=uvicorn.logging --hidden-import=uvicorn.loops --hidden-import=uvicorn.loops.auto --hidden-import=uvicorn.protocols --hidden-import=uvicorn.protocols.http --hidden-import=uvicorn.protocols.http.auto --hidden-import=uvicorn.protocols.websockets --hidden-import=uvicorn.protocols.websockets.auto --hidden-import=uvicorn.lifespan --hidden-import=uvicorn.lifespan.on --hidden-import=edge_tts --hidden-import=edge_tts.asyncio --hidden-import=edge_tts.websocket --hidden-import=aiofiles --hidden-import=PIL --hidden-import=sqlalchemy --hidden-import=aiosqlite --hidden-import=passlib --hidden-import=passlib.hash --hidden-import=passlib.hash.bcrypt standalone_main.py
-
-      - name: Prepare backend artifacts
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Path "release/backend" -Force
-          New-Item -ItemType Directory -Path "release/ffmpeg" -Force
-          Copy-Item "backend/dist/backend.exe" "release/backend/"
-          Copy-Item "backend/dist/backend/" "release/backend/" -Recurse
-          Copy-Item "ffmpeg" "release/ffmpeg/" -Recurse
+          cd backend
+          pyinstaller --noconfirm backend.spec
+
+      - name: Prepare release folder
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "release" -Force
+          Copy-Item "backend/dist/backend" "release/" -Recurse -Force
+          Copy-Item "ffmpeg" "release/" -Recurse -Force
 
       - name: Upload backend artifact
         uses: actions/upload-artifact@v4
