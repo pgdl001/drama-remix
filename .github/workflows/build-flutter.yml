@@ -21,19 +21,20 @@ jobs:
       - name: Enable Windows desktop
         shell: pwsh
         run: |
+          Set-Location drama_remix_app
           & "${{ github.workspace }}/flutter/bin/flutter" config --enable-windows-desktop
 
       - name: Get Flutter dependencies
         shell: pwsh
         run: |
+          Set-Location drama_remix_app
           & "${{ github.workspace }}/flutter/bin/flutter" pub get
-        working-directory: drama_remix_app
 
       - name: Build Flutter Windows
         shell: pwsh
         run: |
+          Set-Location drama_remix_app
           & "${{ github.workspace }}/flutter/bin/flutter" build windows --release
-        working-directory: drama_remix_app
 
       - name: Upload Flutter Windows artifact
         uses: actions/upload-artifact@v4
