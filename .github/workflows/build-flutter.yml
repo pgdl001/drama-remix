@@ -25,9 +25,9 @@ jobs:
           ..\flutter\bin\flutter pub get
           ..\flutter\bin\flutter build windows --release
 
-      - name: Upload Flutter Windows artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: flutter-windows-exe
-          path: build/windows/x64/runner/Release/
+          path: drama_remix_app/build/windows/x64/runner/Release/
           retention-days: 5
